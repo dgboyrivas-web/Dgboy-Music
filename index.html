@@ -244,7 +244,6 @@
             <div class="grid md:grid-cols-2 gap-16 items-center">
                 <div class="relative">
                     <div class="aspect-square glass-card overflow-hidden group">
-                        <!-- Reemplaza con tu foto real en la misma carpeta -->
                         <div class="w-full h-full bg-zinc-900 flex items-center justify-center">
                             <i class="fas fa-user-circle text-9xl text-zinc-800"></i>
                         </div>
@@ -282,7 +281,7 @@
     </footer>
 
     <!-- Motor de Audio -->
-    <audio id="player-core"></audio>
+    <audio id="player-core" preload="auto"></audio>
 
     <script>
         const audio = document.getElementById('player-core');
@@ -297,10 +296,12 @@
         const seekArea = document.getElementById('bar-seek');
         const notify = document.getElementById('notification');
 
-        function showNote(msg) {
+        function showNote(msg, isError = true) {
             notify.innerText = msg;
+            notify.style.background = isError ? '#ef4444' : '#00f2ff';
+            notify.style.color = isError ? 'white' : 'black';
             notify.style.display = 'block';
-            setTimeout(() => { notify.style.display = 'none'; }, 4000);
+            setTimeout(() => { notify.style.display = 'none'; }, 5000);
         }
 
         function loadTrack(element, title, artist, file) {
@@ -313,9 +314,12 @@
 
             // Audio Logic
             audio.pause();
-            audio.src = file;
-            audio.load(); // Forzamos carga
             
+            // Usamos encodeURI para manejar los espacios en blanco correctamente
+            audio.src = encodeURI(file);
+            audio.load();
+            
+            // Intentar reproducir
             const playPromise = audio.play();
 
             if (playPromise !== undefined) {
@@ -324,7 +328,7 @@
                 }).catch(error => {
                     console.error("Playback failed:", error);
                     updateUI(false);
-                    showNote("Error: No se encontró el archivo '" + file + "'. Verifica el nombre exacto.");
+                    showNote("Error: Haz clic en el botón Play central para activar el sonido.");
                 });
             }
         }
@@ -333,8 +337,11 @@
             if (!audio.src) return showNote("Selecciona una pista primero");
             
             if (audio.paused) {
-                audio.play();
-                updateUI(true);
+                audio.play().then(() => {
+                    updateUI(true);
+                }).catch(e => {
+                    showNote("Error al reproducir. Asegúrate que los archivos están en la misma carpeta que index.html");
+                });
             } else {
                 audio.pause();
                 updateUI(false);
@@ -352,10 +359,12 @@
         }
 
         audio.ontimeupdate = () => {
-            const pct = (audio.currentTime / audio.duration) * 100;
-            fill.style.width = pct + '%';
-            timeCurr.innerText = formatTime(audio.currentTime);
-            timeTotal.innerText = formatTime(audio.duration);
+            if (audio.duration) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                fill.style.width = pct + '%';
+                timeCurr.innerText = formatTime(audio.currentTime);
+                timeTotal.innerText = formatTime(audio.duration);
+            }
         };
 
         function formatTime(secs) {
@@ -380,10 +389,19 @@
 
         // Capturador de errores global para el audio
         audio.addEventListener('error', function(e) {
-            console.error("Audio error:", e);
+            console.error("Audio error:", audio.error);
             updateUI(false);
-            showNote("Error al cargar audio. Asegúrate que los archivos MP3 están junto al archivo HTML.");
+            let errorMsg = "Error al cargar audio.";
+            if (audio.error.code === 4) {
+                errorMsg = "Archivo no encontrado. Verifica que el nombre coincida exactamente en tu carpeta.";
+            }
+            showNote(errorMsg);
         });
+
+        // Verificación inicial
+        window.onload = () => {
+            console.log("Reproductor listo. Esperando interacción.");
+        };
     </script>
 </body>
 </html>
