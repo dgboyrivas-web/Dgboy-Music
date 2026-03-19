@@ -2,23 +2,14 @@
   "name": "dgboy-music",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
-    "start": "npm browser-sync start --server --files '*.html, *.css'"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dgboyrivas-web/Dgboy-Music.git"
+    "start": "browser-sync start --server --files '*.html, *.css' --port 3000"
   },
   "keywords": [],
-  "author": "",
+  "author": "Daniel Gabriel Rivas",
   "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/dgboyrivas-web/Dgboy-Music/issues"
-  },
-  "homepage": "https://github.com/dgboyrivas-web/Dgboy-Music#readme",
   "devDependencies": {
-    "browser-sync": "^3.0.4"
+    "browser-sync": "^3.0.0"
   }
 }
